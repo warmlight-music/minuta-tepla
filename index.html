@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Минута тепла — Альбом</title>
+<style>
+  :root{
+    --bg:#120c0a; 
+    --bg2:#241612; 
+    --card:#2e1c17;
+    --accent:#e89e52;
+    --accent2:#c67142;
+    --text:#fdf3ea;
+    --muted:#b89b8a;
+    --glow:rgba(232,158,82,.35);
+  }
+  
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:radial-gradient(circle at 50% 0%,var(--bg2) 0%,var(--bg) 65%);
+    color:var(--text); min-height:100vh; display:flex; flex-direction:column;
+    align-items:center; padding:24px 16px 48px; gap:24px;
+    width: 100%; max-width: 100vw; overflow-x: hidden;
+    -webkit-user-select: none; user-select: none; line-height: 1.5;
+  }
+
+  .album { text-align:center; display:flex; flex-direction:column; align-items:center; gap:16px; width:100%; max-width:600px; }
+  .album__cover { width:min(280px,72vw); aspect-ratio:1/1; border-radius:22px; object-fit:cover; box-shadow:0 24px 70px var(--glow); border:2px solid var(--accent); pointer-events: none; }
+  .album__title { font-size:clamp(26px,6vw,44px); font-weight:800; letter-spacing:.02em; color: #fff; text-shadow: 0 0 20px var(--glow); line-height: 1.1; }
+  .album__sub { color:var(--accent); font-size:16px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; }
+
+  .carousel { width:100%; max-width:960px; display:flex; gap:18px; overflow-x:auto; padding:10px 8px 20px; scroll-snap-type:x mandatory; scrollbar-width:thin; scrollbar-color:var(--accent) transparent; }
+  .carousel::-webkit-scrollbar { height:8px; }
+  .carousel::-webkit-scrollbar-thumb { background:var(--accent); border-radius:4px; }
+  
+  .track { flex:0 0 auto; width:190px; scroll-snap-align:center; background:var(--card); border-radius:18px; padding:12px; cursor:pointer; transition:transform .2s, box-shadow .2s, border-color .2s; border:2px solid transparent; text-align:center; display: flex; flex-direction: column; }
+  .track:hover { transform:translateY(-6px); }
+  .track.active { border-color:var(--accent); box-shadow:0 0 0 4px rgba(232,158,82,.15), 0 12px 30px var(--glow); }
+  
+  .track__cover { width:100%; aspect-ratio:1/1; border-radius:12px; object-fit:cover; display:block; margin-bottom:12px; background:var(--bg2); pointer-events: none; flex-shrink: 0; }
+  
+  .track__num { font-size:11px; color:var(--accent); font-weight:800; letter-spacing:.1em; margin-bottom:4px; text-transform: uppercase; }
+  .track__name { font-size:14px; font-weight:700; margin-bottom:6px; line-height: 1.2; }
+  .track__desc { font-size:11px; color:var(--muted); line-height: 1.3; flex-grow: 1; }
+
+  .player { width:100%; max-width:600px; background:var(--card); border-radius:22px; padding:20px; display:flex; flex-direction:column; gap:14px; box-shadow:0 12px 40px rgba(0,0,0,.6); border:1px solid rgba(232,158,82,.2); position: sticky; bottom: 10px; z-index: 10;}
+  .player__now { display:flex; align-items:center; gap:14px; }
+  .player__cover { width:68px; height:68px; border-radius:14px; object-fit:cover; background:var(--bg2); border:1px solid var(--accent); pointer-events: none; }
+  .player__info { overflow:hidden; flex:1; }
+  .player__title { font-weight:700; font-size:15px; line-height:1.25; margin-bottom:2px; }
+  .player__artist { color:var(--muted); font-size:13px; }
+  .player audio { width:100%; outline: none; }
+  
+  .player__nav { display:flex; justify-content:center; gap:12px; }
+  .player__nav button { background:linear-gradient(135deg,var(--accent),var(--accent2)); border:none; color:#120c0a; padding:10px 22px; border-radius:12px; font-weight:800; cursor:pointer; transition:filter .15s; }
+  .player__nav button:hover { filter:brightness(1.1); }
+</style>
+</head>
+<body>
+
+  <section class="album">
+    <img class="album__cover" id="albumCover" src="cover.jpg" alt="Обложка альбома">
+    <h1 class="album__title">Минута тепла</h1>
+    <p class="album__sub">Новый альбом</p>
+  </section>
+
+  <div class="carousel" id="carousel"></div>
+
+  <div class="player">
+    <div class="player__now">
+      <img class="player__cover" id="playerCover" src="cover.jpg" alt="Cover">
+      <div class="player__info">
+        <div class="player__title" id="playerTitle">Выбери песню</div>
+        <div class="player__artist" id="playerArtist">Минута тепла</div>
+      </div>
+    </div>
+    <audio id="audio" controls controlslist="nodownload" preload="none"></audio>
+    <div class="player__nav">
+      <button id="prevBtn">⏮ Пред</button>
+      <button id="nextBtn">След ⏭</button>
+    </div>
+  </div>
+
+<script>
+  const album = {
+    title: "Минута тепла",
+    cover: "cover.jpg",
+    tracks: [
+      { id: 1, name: "Не моя", desc: "Мужская боль и достоинство. Акустический рок. Шум моря." },
+      { id: 2, name: "Без тебя", desc: "Женский взгляд, страх потери. Баллада в стиле АВВА." },
+      { id: 3, name: "Зеркало трудных дней", desc: "Проверка на прочность, кто рядом в метель. Эпичный поп-рок." },
+      { id: 4, name: "Ты ещё моя", desc: "Надежда на короткое «привет». Драматичная поп-баллада." },
+      { id: 5, name: "Не просто встреча", desc: "Вторая попытка, судьба дала шанс. Живой рок-дуэт." },
+      { id: 6, name: "Минута тепла", desc: "Шаурма, забота, простые вещи. Романтический поп." },
+      { id: 7, name: "Лучше чем лекарство", desc: "Страсть и близость как спасение от усталости. Эстрадная баллада." },
+      { id: 8, name: "Без бабочек", desc: "Философия зрелой любви, уют и тишина. Акустика." },
+      { id: 9, name: "Вторая чашка", desc: "Умение замечать счастье в моменте. Инди-соул." },
+      { id: 10, name: "Секреты счастья", desc: "Финальный маяк, гимн зрелой любви. Тёплый дуэт." }
+    ]
+  };
+
+  let currentTrack = -1;
+
+  const carousel    = document.getElementById('carousel');
+  const audio       = document.getElementById('audio');
+  const playerCover = document.getElementById('playerCover');
+  const playerTitle = document.getElementById('playerTitle');
+
+  const pad = (n) => String(n).padStart(2,'0');
+  
+  const coverPath = (id) => `covers/${pad(id)}.jpg`;
+  
+  // === ЕСЛИ МУЗЫКА В RELEASES, РАСКОММЕНТИРУЙ ЭТУ СТРОКУ И ВСТАВЬ СВОЮ ССЫЛКУ ===
+  // const releaseBaseUrl = "https://github.com/твой_ник/твой_репозиторий/releases/download/v1.0/";
+  // const songPath = (id) => `${releaseBaseUrl}ru-${pad(id)}.mp3`;
+  
+  // === ЕСЛИ МУЗЫКА ЛЕЖИТ В ПАПКЕ songs, ОСТАВЬ ЭТУ СТРОКУ ===
+  const songPath = (id) => `songs/ru-${pad(id)}.mp3`;
+
+  function renderCarousel(){
+    carousel.innerHTML = '';
+    album.tracks.forEach((t, i) => {
+      const el = document.createElement('div');
+      el.className = 'track' + (i === currentTrack ? ' active' : '');
+      el.dataset.index = i;
+      el.innerHTML = `
+        <img class="track__cover" src="${coverPath(t.id)}" alt="${t.name}">
+        <div class="track__num">ТРЕК №${t.id}</div>
+        <div class="track__name">${t.name}</div>
+        <div class="track__desc">${t.desc}</div>
+      `;
+      el.addEventListener('click', () => play(i));
+      carousel.appendChild(el);
+    });
+  }
+
+  function play(i){
+    if (i < 0) i = album.tracks.length - 1;
+    if (i >= album.tracks.length) i = 0;
+
+    currentTrack = i;
+    const t = album.tracks[i];
+
+    playerCover.src = coverPath(t.id);
+    playerTitle.textContent = t.name;
+
+    [...carousel.querySelectorAll('.track')].forEach((el, idx) => el.classList.toggle('active', idx === i));
+    carousel.children[i]?.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+
+    audio.src = songPath(t.id);
+    audio.play().catch(()=>{});
+  }
+
+  document.getElementById('prevBtn').onclick = () => play(currentTrack - 1);
+  document.getElementById('nextBtn').onclick = () => play(currentTrack + 1);
+  audio.addEventListener('ended', () => play(currentTrack + 1));
+
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('dragstart', e => e.preventDefault());
+
+  renderCarousel();
+</script>
+</body>
+</html>
