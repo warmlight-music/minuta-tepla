@@ -37,7 +37,7 @@
   .carousel::-webkit-scrollbar { height:8px; }
   .carousel::-webkit-scrollbar-thumb { background:var(--accent); border-radius:4px; }
   
-  .track { flex:0 0 auto; width:190px; scroll-snap-align:center; background:var(--card); border-radius:18px; padding:12px; cursor:pointer; transition:transform .2s, box-shadow .2s, border-color .2s; border:2px solid transparent; text-align:center; display: flex; flex-direction: column; }
+  .track { flex:0 0 auto; width:190px; scroll-snap-align:center; background:var(--card); border-radius:18px; padding:12px; cursor:pointer; transition:transform .2s, box-shadow .2s, border-color .2s; border:2px solid transparent; text-align:center; display: flex; flex-direction:column; }
   .track:hover { transform:translateY(-6px); }
   .track.active { border-color:var(--accent); box-shadow:0 0 0 4px rgba(232,158,82,.15), 0 12px 30px var(--glow); }
   
@@ -114,12 +114,8 @@
   
   const coverPath = (id) => `covers/${pad(id)}.jpg`;
   
-  // === ЕСЛИ МУЗЫКА В RELEASES, РАСКОММЕНТИРУЙ ЭТУ СТРОКУ И ВСТАВЬ СВОЮ ССЫЛКУ ===
-  // const releaseBaseUrl = "https://github.com/твой_ник/твой_репозиторий/releases/download/v1.0/";
-  // const songPath = (id) => `${releaseBaseUrl}ru-${pad(id)}.mp3`;
-  
-  // === ЕСЛИ МУЗЫКА ЛЕЖИТ В ПАПКЕ songs, ОСТАВЬ ЭТУ СТРОКУ ===
-  const songPath = (id) => `songs/ru-${pad(id)}.mp3`;
+  // === МУЗЫКА ИЩЕТСЯ В КОРНЕ РЕПОЗИТОРИЯ ===
+  const songPath = (id) => `ru-${pad(id)}.mp3`;
 
   function renderCarousel(){
     carousel.innerHTML = '';
@@ -156,6 +152,16 @@
   }
 
   document.getElementById('prevBtn').onclick = () => play(currentTrack - 1);
+  document.getElementById('nextBtn').onclick = () => play(currentTrack + 1);
+  audio.addEventListener('ended', () => play(currentTrack + 1));
+
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('dragstart', e => e.preventDefault());
+
+  renderCarousel();
+</script>
+</body>
+</html>k = () => play(currentTrack - 1);
   document.getElementById('nextBtn').onclick = () => play(currentTrack + 1);
   audio.addEventListener('ended', () => play(currentTrack + 1));
 
